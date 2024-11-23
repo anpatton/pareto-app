@@ -387,7 +387,7 @@ server <- function(input, output, session) {
         toupper(input$bs1),
         " | ", !!var2, " ",
         # pareto_box_labels()[["lab2"]], ")"
-        toupper(input$bs2)
+        toupper(input$bs2), ")"
       )) |>
       group_by(!!var1, !!var2) |>
       top_n(n = 1, wt = -idx)
