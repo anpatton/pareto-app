@@ -1,0 +1,54 @@
+
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+
+Attaching package: ‘arrow’
+
+The following object is masked from ‘package:utils’:
+
+    timestamp
+
+Error in `bind_rows()`:
+! Can't combine `..1$season_year` <double> and `..2$season_year` <character>.
+Backtrace:
+     ▆
+  1. ├─dplyr::bind_rows(...)
+  2. │ └─vctrs::vec_rbind(!!!dots, .names_to = .id, .error_call = current_env())
+  3. └─vctrs (local) `<fn>`()
+  4.   └─vctrs::vec_default_ptype2(...)
+  5.     ├─base::withRestarts(...)
+  6.     │ └─base (local) withOneRestart(expr, restarts[[1L]])
+  7.     │   └─base (local) doWithOneRestart(return(expr), restart)
+  8.     └─vctrs::stop_incompatible_type(...)
+  9.       └─vctrs:::stop_incompatible(...)
+ 10.         └─vctrs:::stop_vctrs(...)
+ 11.           └─rlang::abort(message, class = c(class, "vctrs_error"), ..., call = call)
+Execution halted
+Fatal error: cannot open file 'pareto-app/get_gamelogs.R': No such file or directory
+Fatal error: cannot open file 'pareto-app/get_gamelogs.R': No such file or directory
+
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+
+Attaching package: ‘arrow’
+
+The following object is masked from ‘package:utils’:
+
+    timestamp
+
