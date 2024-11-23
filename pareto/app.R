@@ -18,22 +18,26 @@ version_date <- readRDS("version_date.Rds")
 
 logs_nba <- arrow::read_parquet("nba_logs.parquet") |> 
   mutate(min = round(min, 2)) |> 
-  mutate(idx = 1:n()) |> 
   drop_na(all_of(c(
     "pts", "fgm", "fga", "fg3m", "fg3a",
     "fg2m", "fg2a", "ftm", "fta", "ts", "reb", "oreb",
     "dreb", "ast", "stl", "tov", "blk", "pf", "min"
-  )))
+  ))) |> 
+  mutate(idx = 1:n()) 
+
 
 logs_wnba <- arrow::read_parquet("wnba_logs.parquet") |> 
   mutate(min = round(min, 2)) |> 
-  mutate(idx = 1:n()) |> 
+  mutate(fg2m = fgm - fg3m) |> 
+  mutate(fg2a = fga - fg3a) |> 
+  mutate(ts = round(pts/(2 * (fga + 0.44 * fta)), 3)) |> 
   drop_na(all_of(c(
     "pts", "fgm", "fga", "fg3m", "fg3a",
     "fg2m", "fg2a", "ftm", "fta", "ts", "reb", "oreb",
     "dreb", "ast", "stl", "tov", "blk", "pf", "min"
-  )))
-  
+  ))) |> 
+  mutate(idx = 1:n()) |> 
+  mutate(season_full = season_year)
 
 last_team_nba <- logs_nba |> 
   group_by(player_id, season_year) |> 
@@ -125,17 +129,17 @@ ui <- fluidPage(
           selectInput(
             inputId = "bsp1",
             label = "Highlight Player 1",
-            choices = c(NA, all_players_box)
+            choices = c(NA, all_players_box_nba)
           ),
           selectInput(
             inputId = "bsp2",
             label = "Highlight Player 2",
-            choices = c(NA, all_players_box)
+            choices = c(NA, all_players_box_nba)
           ),
           selectInput(
             inputId = "bsp3",
             label = "Highlight Player 3",
-            choices = c(NA, all_players_box)
+            choices = c(NA, all_players_box_nba)
           ),
           actionButton(
             inputId = "make_pareto_box",
@@ -161,7 +165,7 @@ ui <- fluidPage(
             label = "What Years?",
             min = 1997,
             max = 2025,
-            value = c(1992, 2025),
+            value = c(1997, 2025),
             step = 1,
             sep = ""
           ),
@@ -488,10 +492,8 @@ server <- function(input, output, session) {
     res <- res |>
       mutate(label = paste0(
         player_name, " (", !!var1, " ",
-        # pareto_box_labels()[["lab1"]],
         toupper(input$bs1_w),
         " | ", !!var2, " ",
-        # pareto_box_labels()[["lab2"]], ")"
         toupper(input$bs2_w), ")"
       )) |>
       group_by(!!var1, !!var2) |>
@@ -556,8 +558,8 @@ server <- function(input, output, session) {
       }
 
 
-      if (length(unique(pareto_box_data()$type_season)) > 1) {
-        ggplot(pareto_box_data(), aes_string(x = input$bs1_w, y = input$bs2_w)) +
+      if (length(unique(pareto_box_data_w()$type_season)) > 1) {
+        ggplot(pareto_box_data_w(), aes_string(x = input$bs1_w, y = input$bs2_w)) +
           guides(color = guide_legend(override.aes = list(alpha = 1))) +
           geom_point(data = plot_df, aes_string(x = input$bs1_w, y = input$bs2_w), shape = 19, alpha = 0.20, color = "gray", size = 4) +
           geom_point(data = highlight_df, aes_string(x = input$bs1_w, y = input$bs2_w, color = "code_name"), shape = 19, alpha = 0.40, size = 4) +
@@ -578,7 +580,7 @@ server <- function(input, output, session) {
           theme_bw(base_size = 18) 
         
       } else {
-        ggplot(pareto_box_data(), aes_string(x = input$bs1_w, y = input$bs2_w)) +
+        ggplot(pareto_box_data_w(), aes_string(x = input$bs1_w, y = input$bs2_w)) +
           guides(color = guide_legend(override.aes = list(alpha = 1))) +
           geom_point(data = plot_df, aes_string(x = input$bs1_w, y = input$bs2_w), shape = 19, alpha = 0.20, color = "gray", size = 4) +
           geom_point(data = highlight_df, aes_string(x = input$bs1_w, y = input$bs2_w, color = "code_name"), shape = 19, alpha = 0.40, size = 4) +

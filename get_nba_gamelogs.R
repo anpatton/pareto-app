@@ -19,7 +19,7 @@ headers <- c(
 pareto_cols <- c("season_year", "player_id", "player_name", 
                  "team_name", "game_id", "game_date", "matchup", "min", 
                  "fgm", "fga", "fg3m", "fg3a", "ftm", "fta", 
-                 "oreb", "dreb", "reb", "ast", "tov", "stl", "blk", "pf", "pts", "plus_minus")
+                 "oreb", "dreb", "reb", "ast", "tov", "stl", "blk", "pf", "pts", "plusminus")
 
 date_of_games <- Sys.Date() - 1
 
@@ -49,21 +49,28 @@ if(nrow(new_logs) == 0) {
     mutate(season_year = 2025) |> 
     mutate(player_id = as.numeric(player_id)) |> 
     mutate(across(c("player_id", "min", "fgm", "fga", "fg3m", "fg3a", "ftm", "fta", 
-    "oreb", "dreb", "reb", "ast", "tov", "stl", "blk", "pf", "pts", "plus_minus"), as.numeric)) |>
+    "oreb", "dreb", "reb", "ast", "tov", "stl", "blk", "pf", "pts", "plusminus"), as.numeric)) |>
     select(all_of(pareto_cols)) |> 
-    mutate(game_date = as.Date(game_date))
-  
-  arrow::read_parquet("~/pareto-app/data/nba_logs_2024-25_REG.parquet") |> 
+    mutate(game_date = as.Date(game_date)) |> 
+    mutate(fg2m = fgm - fg3m) |> 
+    mutate(fg2a = fga - fg3a) |> 
+    mutate(ts = round(pts/(2 * (fga + 0.44 * fta)), 3)) |> 
+    mutate(code_name = paste0(player_name, " | ", player_id)) |> 
+    mutate(type_season = "Regular Season")
+
+  arrow::read_parquet("~/pareto-app/data/nba/nba_logs_2024-25_REG.parquet") |> 
     bind_rows(new_logs) |> 
-    arrow::write_parquet("~/pareto-app/data/nba_logs_2024-25_REG.parquet")
+    distinct() |>
+    arrow::write_parquet("~/pareto-app/data/nba/nba_logs_2024-25_REG.parquet")
   
   arrow::read_parquet("~/pareto-app/pareto/nba_logs.parquet") |> 
     bind_rows(new_logs) |> 
+    distinct() |>
     mutate(min = round(min, 1)) |> 
     arrow::write_parquet("~/pareto-app/pareto/nba_logs.parquet")
 
   arrow::write_parquet(new_logs, 
-    paste0("~/pareto-app/data/daily/logs_", 
+    paste0("~/pareto-app/data/nba/daily/logs_", 
            date_of_games,
             ".parquet"))
   
